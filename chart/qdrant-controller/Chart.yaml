@@ -1,0 +1,12 @@
+apiVersion: v2
+name: qdrant-controller
+description: A Kubernetes controller for managing Qdrant Cloud clusters
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - qdrant
+  - vector-database
+  - controller
+maintainers:
+  - name: Doodle

@@ -1,0 +1,31 @@
+name: pr-trivy
+on: pull_request
+
+permissions: {}
+
+jobs:
+  trivy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # Required for trivy to scan repo in private repos
+      security-events: write # Required to upload SARIF results
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
+        with:
+          egress-policy: audit
+
+      - name: Trivy fs scan
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # 0.33.1
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          scanners: license,vuln,secret
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@b5ebac6f4c00c8ccddb7cdcd45fdb248329f808a # v3.32.2
+        with:
+          sarif_file: 'trivy-results.sarif'

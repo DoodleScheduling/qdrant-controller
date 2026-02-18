@@ -1,0 +1,3 @@
+# This kustomization.yaml is used to build the CRD manifests
+resources:
+- qdrant.infra.doodle.com_qdrantclusters.yaml
