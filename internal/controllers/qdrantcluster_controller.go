@@ -136,7 +136,7 @@ func (r *QdrantClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	// Handle deletion
-	if !cluster.ObjectMeta.DeletionTimestamp.IsZero() {
+	if !cluster.DeletionTimestamp.IsZero() {
 		return r.reconcileDelete(ctx, cluster, logger)
 	}
 
@@ -204,7 +204,11 @@ func (r *QdrantClusterReconciler) reconcile(ctx context.Context, cluster infrav1
 	if err != nil {
 		return cluster, reconcile.Result{}, err
 	}
-	defer qdrant.Close()
+	defer func() {
+		if err := qdrant.Close(); err != nil {
+			logger.Error(err, "failed to close qdrant client")
+		}
+	}()
 
 	connectionSecretName := fmt.Sprintf("%s-connection", cluster.Name)
 	if cluster.Spec.ConnectionSecret.Name != "" {
@@ -311,7 +315,11 @@ func (r *QdrantClusterReconciler) reconcileSuspend(ctx context.Context, cluster 
 	if err != nil {
 		return reconcile.Result{}, err
 	}
-	defer qdrant.Close()
+	defer func() {
+		if err := qdrant.Close(); err != nil {
+			logger.Error(err, "failed to close qdrant client")
+		}
+	}()
 
 	// Check current cluster status
 	qdrantCluster, err := qdrant.GetCluster(ctx, cluster.Spec.AccountID, cluster.Status.ClusterID)
@@ -357,7 +365,11 @@ func (r *QdrantClusterReconciler) reconcileDelete(ctx context.Context, cluster i
 	if err != nil {
 		return reconcile.Result{}, err
 	}
-	defer qdrant.Close()
+	defer func() {
+		if err := qdrant.Close(); err != nil {
+			logger.Error(err, "failed to close qdrant client")
+		}
+	}()
 
 	// Delete database API key if it exists
 	if cluster.Status.DatabaseKeyID != "" && cluster.Status.ClusterID != "" {
@@ -391,7 +403,7 @@ func (r *QdrantClusterReconciler) reconcileDelete(ctx context.Context, cluster i
 func (r *QdrantClusterReconciler) patchStatus(ctx context.Context, cluster *infrav1beta1.QdrantCluster) error {
 	key := client.ObjectKeyFromObject(cluster)
 	latest := &infrav1beta1.QdrantCluster{}
-	if err := r.Client.Get(ctx, key, latest); err != nil {
+	if err := r.Get(ctx, key, latest); err != nil {
 		return err
 	}
 
