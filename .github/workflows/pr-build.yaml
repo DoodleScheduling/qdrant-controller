@@ -12,6 +12,8 @@ permissions: {}
 jobs:
   lint-chart:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
@@ -46,6 +48,8 @@ jobs:
 
   fmt:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
@@ -73,6 +77,8 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         kubernetes-version:
@@ -96,6 +102,8 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
