@@ -22,12 +22,12 @@ spec:
   # The controller will find the smallest package meeting these requirements
   packageSelection:
     resourceRequirements:
-      # Minimum RAM per node (e.g., "2GiB", "8GiB", "16GiB")
-      ram: "8GiB"
-      # Minimum CPU per node (e.g., "2000m" for 2 vCPU, "4000m" for 4 vCPU)
-      cpu: "2000m"
-      # Minimum disk per node (e.g., "32GiB", "64GiB")
-      disk: "32GiB"
+      # Minimum RAM per node (e.g., "2Gi", "8Gi", "16Gi")
+      ram: "8Gi"
+      # Minimum CPU per node (e.g., "2" for 2 vCPU, "500m" for half a vCPU)
+      cpu: "2"
+      # Minimum disk per node (e.g., "32Gi", "64Gi")
+      disk: "32Gi"
 
   # Optional: Add extra disk beyond selected package (in GiB)
   additionalDiskGiB: 20

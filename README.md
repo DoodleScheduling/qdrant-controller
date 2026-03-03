@@ -1,73 +1,18 @@
-# Qdrant Controller
+# qdrant-controller
 
-A Kubernetes controller for managing Qdrant Cloud clusters declaratively.
+[![release](https://img.shields.io/github/release/DoodleScheduling/qdrant-controller/all.svg)](https://github.com/DoodleScheduling/qdrant-controller/releases)
+[![release](https://github.com/DoodleScheduling/qdrant-controller/actions/workflows/release.yaml/badge.svg)](https://github.com/DoodleScheduling/qdrant-controller/actions/workflows/release.yaml)
+[![report](https://goreportcard.com/badge/github.com/DoodleScheduling/qdrant-controller)](https://goreportcard.com/report/github.com/DoodleScheduling/qdrant-controller)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/DoodleScheduling/qdrant-controller/badge)](https://api.securityscorecards.dev/projects/github.com/DoodleScheduling/qdrant-controller)
+[![Coverage Status](https://coveralls.io/repos/github/DoodleScheduling/qdrant-controller/badge.svg?branch=master)](https://coveralls.io/github/DoodleScheduling/qdrant-controller?branch=master)
+[![license](https://img.shields.io/github/license/DoodleScheduling/qdrant-controller.svg)](https://github.com/DoodleScheduling/qdrant-controller/blob/master/LICENSE)
 
-## Status
+Kubernetes controller for managing Qdrant Cloud clusters.
 
-✅ **Implementation Complete!** The controller is fully functional and ready for testing.
+## Quickstart
 
-## Features
+### Usage Example
 
-- 🎯 **Declarative Cluster Management** - Define Qdrant clusters as Kubernetes resources
-- 🔐 **Multi-Tenancy** - Per-resource credentials (no global API keys)
-- 📦 **Hybrid Package Selection** - Explicit packageID or auto-select from resource requirements
-- 🔑 **Auto Database Key Creation** - Automatically generates database API keys
-- 🔌 **Connection Secrets** - Auto-creates secrets with REST and gRPC endpoints
-- ⏸️ **Suspend/Resume** - Full cluster lifecycle management
-- 📊 **Status Tracking** - Comprehensive phase tracking and conditions
-- 🧹 **Finalizers** - Proper cleanup on deletion
-
-## Quick Start
-
-### Prerequisites
-
-- Kubernetes cluster (v1.27+)
-- Qdrant Cloud account and Management API key
-- `kubectl` configured to access your cluster
-
-### Installation
-
-#### Using Helm (Recommended)
-
-1. **Install CRDs and controller:**
-   ```bash
-   helm upgrade --install qdrant-controller oci://ghcr.io/doodlescheduling/charts/qdrant-controller \
-     -n qdrant-controller-system --create-namespace
-   ```
-
-2. **Create a secret with your Qdrant Cloud Management API key:**
-   ```bash
-   kubectl create secret generic qdrant-cloud-api-key \
-     -n default \
-     --from-literal=apiKey='your-management-api-key-here'
-   ```
-
-#### Manual Installation
-
-1. **Install CRDs:**
-   ```bash
-   make install
-   ```
-
-2. **Create a secret with your Qdrant Cloud Management API key:**
-   ```bash
-   kubectl create secret generic qdrant-cloud-api-key \
-     --from-literal=apiKey='your-management-api-key-here'
-   ```
-
-3. **Deploy the controller:**
-   ```bash
-   make deploy IMG=your-registry/qdrant-controller:latest
-   ```
-
-   Or run locally for development:
-   ```bash
-   make run
-   ```
-
-### Create Your First Cluster
-
-**Option 1: Auto-select package from resource requirements**
 ```yaml
 apiVersion: qdrant.infra.doodle.com/v1beta1
 kind: QdrantCluster
@@ -80,95 +25,75 @@ spec:
   nodeCount: 3
   packageSelection:
     resourceRequirements:
-      ram: "8GiB"
-      cpu: "2000m"
-      disk: "32GiB"
-  storageTier: balanced
+      ram: "8Gi"
+      cpu: "2"
+      disk: "32Gi"
   secret:
     name: qdrant-cloud-api-key
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: qdrant-cloud-api-key
+data:
+  apiKey: <base64-encoded-management-api-key>
+type: Opaque
 ```
 
-**Option 2: Explicit package ID**
+Alternatively, specify a package UUID directly instead of resource requirements:
+
 ```yaml
-apiVersion: qdrant.infra.doodle.com/v1beta1
-kind: QdrantCluster
-metadata:
-  name: my-cluster
 spec:
-  accountID: "your-account-uuid"
-  cloudProvider: aws
-  cloudRegion: us-east-1
-  nodeCount: 1
   packageSelection:
     packageID: "package-uuid-from-qdrant-cloud"
-  secret:
-    name: qdrant-cloud-api-key
 ```
 
-**Apply the manifest:**
-```bash
-kubectl apply -f config/samples/qdrant_v1beta1_qdrantcluster_resource_based.yaml
+## Observe reconciliation
+
+Each resource reports various conditions in `.status.conditions` which will give the necessary insight about the
+current state of the resource.
+
+```yaml
+status:
+  conditions:
+  - lastTransitionTime: "2024-01-15T10:30:00Z"
+    message: ""
+    observedGeneration: 1
+    reason: ReconciliationSucceeded
+    status: "True"
+    type: Ready
 ```
 
-**Check status:**
-```bash
-kubectl get qdrantclusters
-kubectl describe qdrantcluster my-cluster
+## Installation
+
+### Helm
+
+Please see [chart/qdrant-controller](https://github.com/DoodleScheduling/qdrant-controller/tree/master/chart/qdrant-controller) for the helm chart docs.
+
+### Manifests/kustomize
+
+Alternatively you may get the bundled manifests in each release to deploy it using kustomize or use them directly.
+
+## Configuration
+The controller can be configured using cmd args:
 ```
-
-**Get connection details:**
-```bash
-kubectl get secret my-cluster-connection -o yaml
+      --concurrent int                            The number of concurrent reconciles. (default 4)
+      --enable-leader-election                    Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager.
+      --graceful-shutdown-timeout duration        The duration given to the reconciler to finish before forcibly stopping. (default 10m0s)
+      --health-addr string                        The address the health endpoint binds to. (default ":9557")
+      --insecure-kubeconfig-exec                  Allow use of the user.exec section in kubeconfigs provided for remote apply.
+      --insecure-kubeconfig-tls                   Allow that kubeconfigs provided for remote apply can disable TLS verification.
+      --kube-api-burst int                        The maximum burst queries-per-second of requests sent to the Kubernetes API. (default 300)
+      --kube-api-qps float32                      The maximum queries-per-second of requests sent to the Kubernetes API. (default 50)
+      --leader-election-lease-duration duration   Interval at which non-leader candidates will wait to force acquire leadership (duration string). (default 35s)
+      --leader-election-release-on-cancel         Defines if the leader should step down voluntarily on controller manager shutdown. (default true)
+      --leader-election-renew-deadline duration   Duration that the leading controller manager will retry refreshing leadership before giving up (duration string). (default 30s)
+      --leader-election-retry-period duration     Duration the LeaderElector clients should wait between tries of actions (duration string). (default 5s)
+      --log-encoding string                       Log encoding format. Can be 'json' or 'console'. (default "json")
+      --log-level string                          Log verbosity level. Can be one of 'trace', 'debug', 'info', 'error'. (default "info")
+      --max-retry-delay duration                  The maximum amount of time for which an object being reconciled will have to wait before a retry. (default 15m0s)
+      --metrics-addr string                       The address the metric endpoint binds to. (default ":9556")
+      --min-retry-delay duration                  The minimum amount of time for which an object being reconciled will have to wait before a retry. (default 750ms)
+      --watch-all-namespaces                      Watch for resources in all namespaces, if set to false it will only watch the runtime namespace. (default true)
+      --watch-label-selector string               Watch for resources with matching labels e.g. 'sharding.fluxcd.io/shard=shard1'.
 ```
-
-## Development
-
-### Build
-```bash
-make build
-```
-
-### Run Tests
-```bash
-make test
-```
-
-### Generate Code
-```bash
-make generate  # Generate deepcopy code
-make manifests # Generate CRDs and RBAC
-```
-
-### Run Locally
-```bash
-make run
-```
-
-## Documentation
-
-- [Helm Chart README](chart/qdrant-controller/README.md) - Helm chart documentation
-- [AGENT_SPEC.md](docs/AGENT_SPEC.md) - Complete implementation specification
-- [API_RESEARCH_FINDINGS.md](docs/API_RESEARCH_FINDINGS.md) - Qdrant Cloud API research
-- [MULTI_TENANCY.md](docs/MULTI_TENANCY.md) - Multi-tenancy pattern documentation
-- [Examples](config/samples/) - Example manifests
-- [CONTRIBUTING.md](CONTRIBUTING.md) - How to contribute
-- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) - Community guidelines
-- [SECURITY.md](SECURITY.md) - Security policy
-
-## Architecture
-
-The controller follows Kubernetes operator patterns using [controller-runtime](https://github.com/kubernetes-sigs/controller-runtime):
-
-- **CRD**: `QdrantCluster` defines the desired state
-- **Controller**: Reconciles actual state with desired state
-- **gRPC Client**: Communicates with Qdrant Cloud API
-- **Package Selector**: Auto-selects packages based on resource requirements
-
-## References
-
-- [Qdrant Cloud Documentation](https://qdrant.tech/documentation/cloud-quickstart/)
-- [Qdrant Cloud Public API Repository](https://github.com/qdrant/qdrant-cloud-public-api)
-
-## License
-
-Apache License 2.0

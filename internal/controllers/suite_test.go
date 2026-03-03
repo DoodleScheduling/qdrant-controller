@@ -29,6 +29,7 @@ import (
 	. "github.com/onsi/gomega"
 	clusterv1 "github.com/qdrant/qdrant-cloud-public-api/gen/go/qdrant/cloud/cluster/v1"
 	"google.golang.org/grpc"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -179,6 +180,11 @@ func needsExactConditions(expected []metav1.Condition, current []metav1.Conditio
 	}
 
 	return nil
+}
+
+func resourceQuantity(s string) *resource.Quantity {
+	q := resource.MustParse(s)
+	return &q
 }
 
 var _ = grpc.ClientConnInterface(&mockClientConn{})

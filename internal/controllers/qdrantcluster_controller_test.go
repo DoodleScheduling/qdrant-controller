@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -36,14 +37,14 @@ var _ = Describe("QdrantCluster controller", func() {
 				},
 				Spec: v1beta1.QdrantClusterSpec{
 					AccountID:     testAccountID,
-					CloudProvider: "aws",
+					CloudProvider: v1beta1.CloudProviderAWS,
 					CloudRegion:   "us-east-1",
 					NodeCount:     1,
 					PackageSelection: v1beta1.PackageSelection{
 						ResourceRequirements: &v1beta1.ResourceRequirements{
-							RAM:  "2GiB",
-							CPU:  "500m",
-							Disk: "8GiB",
+							RAM:  resourceQuantity("2Gi"),
+							CPU:  resourceQuantity("500m"),
+							Disk: resourceQuantity("8Gi"),
 						},
 					},
 					Secret: v1beta1.SecretReference{
@@ -84,14 +85,14 @@ var _ = Describe("QdrantCluster controller", func() {
 				},
 				Spec: v1beta1.QdrantClusterSpec{
 					AccountID:     testAccountID,
-					CloudProvider: "aws",
+					CloudProvider: v1beta1.CloudProviderAWS,
 					CloudRegion:   "us-east-1",
 					NodeCount:     1,
 					PackageSelection: v1beta1.PackageSelection{
 						ResourceRequirements: &v1beta1.ResourceRequirements{
-							RAM:  "2GiB",
-							CPU:  "500m",
-							Disk: "8GiB",
+							RAM:  resourceQuantity("2Gi"),
+							CPU:  resourceQuantity("500m"),
+							Disk: resourceQuantity("8Gi"),
 						},
 					},
 					Secret: v1beta1.SecretReference{
@@ -152,14 +153,14 @@ var _ = Describe("QdrantCluster controller", func() {
 				},
 				Spec: v1beta1.QdrantClusterSpec{
 					AccountID:     testAccountID,
-					CloudProvider: "aws",
+					CloudProvider: v1beta1.CloudProviderAWS,
 					CloudRegion:   "us-east-1",
 					NodeCount:     1,
 					PackageSelection: v1beta1.PackageSelection{
 						ResourceRequirements: &v1beta1.ResourceRequirements{
-							RAM:  "2GiB",
-							CPU:  "500m",
-							Disk: "8GiB",
+							RAM:  resourceQuantity("2Gi"),
+							CPU:  resourceQuantity("500m"),
+							Disk: resourceQuantity("8Gi"),
 						},
 					},
 					Secret: v1beta1.SecretReference{

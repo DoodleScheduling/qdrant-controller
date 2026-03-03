@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	bookingv1 "github.com/qdrant/qdrant-cloud-public-api/gen/go/qdrant/cloud/booking/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 // PackageSelector helps select the appropriate package based on resource requirements
@@ -19,24 +20,20 @@ func NewPackageSelector(packages []*bookingv1.Package) *PackageSelector {
 }
 
 // SelectPackage finds the smallest package that meets the given requirements
-func (ps *PackageSelector) SelectPackage(minRAM, minCPU, minDisk string) (*bookingv1.Package, error) {
+func (ps *PackageSelector) SelectPackage(minRAM, minCPU, minDisk *resource.Quantity) (*bookingv1.Package, error) {
 	if len(ps.packages) == 0 {
 		return nil, fmt.Errorf("no packages available")
 	}
 
-	minRAMBytes, err := parseResourceString(minRAM)
-	if err != nil && minRAM != "" {
-		return nil, fmt.Errorf("invalid RAM format: %w", err)
+	var minRAMBytes, minCPUMillis, minDiskBytes int64
+	if minRAM != nil {
+		minRAMBytes = minRAM.Value()
 	}
-
-	minCPUMillis, err := parseCPUString(minCPU)
-	if err != nil && minCPU != "" {
-		return nil, fmt.Errorf("invalid CPU format: %w", err)
+	if minCPU != nil {
+		minCPUMillis = minCPU.MilliValue()
 	}
-
-	minDiskBytes, err := parseResourceString(minDisk)
-	if err != nil && minDisk != "" {
-		return nil, fmt.Errorf("invalid disk format: %w", err)
+	if minDisk != nil {
+		minDiskBytes = minDisk.Value()
 	}
 
 	var bestPackage *bookingv1.Package
@@ -89,7 +86,7 @@ func (ps *PackageSelector) SelectPackage(minRAM, minCPU, minDisk string) (*booki
 	}
 
 	if bestPackage == nil {
-		return nil, fmt.Errorf("no package found matching requirements (RAM: %s, CPU: %s, Disk: %s)", minRAM, minCPU, minDisk)
+		return nil, fmt.Errorf("no package found matching requirements (RAM: %v, CPU: %v, Disk: %v)", minRAM, minCPU, minDisk)
 	}
 
 	return bestPackage, nil

@@ -17,6 +17,7 @@ limitations under the License.
 package v1beta1
 
 import (
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -27,10 +28,9 @@ type QdrantClusterSpec struct {
 	// +kubebuilder:validation:Pattern=`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`
 	AccountID string `json:"accountID"`
 
-	// CloudProvider specifies the cloud provider ("aws", "gcp", "azure", "hybrid")
+	// CloudProvider specifies the cloud provider
 	// +kubebuilder:validation:Required
-	// +kubebuilder:validation:Enum=aws;gcp;azure;hybrid
-	CloudProvider string `json:"cloudProvider"`
+	CloudProvider CloudProviderType `json:"cloudProvider"`
 
 	// CloudRegion specifies the cloud provider region (e.g., "us-east-1", "europe-west1")
 	// +kubebuilder:validation:Required
@@ -109,21 +109,29 @@ type PackageSelection struct {
 
 // ResourceRequirements defines minimum resource requirements for automatic package selection
 type ResourceRequirements struct {
-	// RAM specifies minimum RAM (e.g., "8GiB", "16GiB")
-	// +kubebuilder:validation:Pattern=`^[0-9]+[KMGT]i?B$`
+	// RAM specifies minimum RAM (e.g., "8Gi", "16Gi")
 	// +optional
-	RAM string `json:"ram,omitempty"`
+	RAM *resource.Quantity `json:"ram,omitempty"`
 
-	// CPU specifies minimum CPU (e.g., "2000m" for 2 vCPU, "4000m" for 4 vCPU)
-	// +kubebuilder:validation:Pattern=`^[0-9]+m?$`
+	// CPU specifies minimum CPU (e.g., "2" for 2 vCPU, "500m" for half a vCPU)
 	// +optional
-	CPU string `json:"cpu,omitempty"`
+	CPU *resource.Quantity `json:"cpu,omitempty"`
 
-	// Disk specifies minimum disk space (e.g., "32GiB", "64GiB")
-	// +kubebuilder:validation:Pattern=`^[0-9]+[KMGT]i?B$`
+	// Disk specifies minimum disk space (e.g., "32Gi", "64Gi")
 	// +optional
-	Disk string `json:"disk,omitempty"`
+	Disk *resource.Quantity `json:"disk,omitempty"`
 }
+
+// CloudProviderType defines supported cloud providers
+// +kubebuilder:validation:Enum=aws;gcp;azure;hybrid
+type CloudProviderType string
+
+const (
+	CloudProviderAWS    CloudProviderType = "aws"
+	CloudProviderGCP    CloudProviderType = "gcp"
+	CloudProviderAzure  CloudProviderType = "azure"
+	CloudProviderHybrid CloudProviderType = "hybrid"
+)
 
 // StorageTierType defines storage performance tiers
 // +kubebuilder:validation:Enum=cost-optimized;balanced;performance

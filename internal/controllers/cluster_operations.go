@@ -69,7 +69,7 @@ func (r *QdrantClusterReconciler) createCluster(ctx context.Context, qdrant *qdr
 	qdrantCluster := &clusterv1.Cluster{
 		AccountId:             cluster.Spec.AccountID,
 		Name:                  cluster.Name,
-		CloudProviderId:       cluster.Spec.CloudProvider,
+		CloudProviderId:       string(cluster.Spec.CloudProvider),
 		CloudProviderRegionId: cluster.Spec.CloudRegion,
 		Configuration:         config,
 		Labels:                labels,
@@ -151,7 +151,7 @@ func (r *QdrantClusterReconciler) updateCluster(ctx context.Context, qdrant *qdr
 		Id:                    cluster.Status.ClusterID,
 		AccountId:             cluster.Spec.AccountID,
 		Name:                  cluster.Name,
-		CloudProviderId:       cluster.Spec.CloudProvider,
+		CloudProviderId:       string(cluster.Spec.CloudProvider),
 		CloudProviderRegionId: cluster.Spec.CloudRegion,
 		Configuration:         config,
 		Labels:                labels,
@@ -190,7 +190,7 @@ func (r *QdrantClusterReconciler) resolvePackageID(ctx context.Context, qdrant *
 		logger.Info("resolving package from resource requirements")
 
 		// List available packages
-		packagesResp, err := qdrant.ListPackages(ctx, cluster.Spec.AccountID, cluster.Spec.CloudProvider, cluster.Spec.CloudRegion)
+		packagesResp, err := qdrant.ListPackages(ctx, cluster.Spec.AccountID, string(cluster.Spec.CloudProvider), cluster.Spec.CloudRegion)
 		if err != nil {
 			return "", fmt.Errorf("failed to list packages: %w", err)
 		}
