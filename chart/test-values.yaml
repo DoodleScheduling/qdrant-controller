@@ -1,0 +1,28 @@
+# Test deployment values for devbox-sre-3 namespace
+image:
+  repository: qdrant-controller
+  tag: test
+  pullPolicy: IfNotPresent
+
+# Single replica for testing
+replicas: 1
+
+# Enable leader election even for single replica (good practice)
+extraArgs:
+  - --enable-leader-election
+
+# Watch only the namespace we're deployed in
+env:
+  RUNTIME_NAMESPACE: devbox-sre-3
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Disable kube-rbac-proxy for simpler testing
+kubeRBACProxy:
+  enabled: false

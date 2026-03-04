@@ -1,0 +1,72 @@
+apiVersion: qdrant.infra.doodle.com/v1beta1
+kind: QdrantCluster
+metadata:
+  name: my-qdrant-cluster
+  namespace: default
+spec:
+  # Your Qdrant Cloud account ID (UUID format)
+  # Get it from: https://cloud.qdrant.io/
+  accountID: "00000000-0000-0000-0000-000000000000"
+
+  # Cloud provider and region
+  cloudProvider: aws
+  cloudRegion: us-east-1
+
+  # Number of nodes
+  nodeCount: 1
+
+  # Qdrant version (optional, defaults to latest)
+  qdrantVersion: "v1.16.3"
+
+  # Package selection - Option 1: Explicit package ID
+  # Get package IDs by calling: qdrant-cloud-cli list-packages --account-id <id> --provider aws --region us-east-1
+  packageSelection:
+    packageID: "abc-123-package-uuid-here"
+
+  # Optional: Add extra disk beyond package default (in GiB)
+  additionalDiskGiB: 10
+
+  # Optional: Storage performance tier
+  # Options: cost-optimized (default), balanced, performance
+  storageTier: cost-optimized
+
+  # Optional: Advanced configuration
+  configuration:
+    # Qdrant-specific database settings
+    databaseConfiguration:
+      max_segment_size_kb: "10000"
+
+    # Labels for the cluster (max 10)
+    labels:
+      environment: production
+      team: data-platform
+
+  # Secret containing the Management API key
+  secret:
+    name: qdrant-cloud-api-key
+    # Optional: custom key name in secret (default: "apiKey")
+    # apiKeyKey: myCustomKeyName
+
+  # Optional: Custom name for connection secret (default: "<cluster-name>-connection")
+  # connectionSecret:
+  #   name: my-custom-connection-secret
+
+  # Auto-create database API key (default: true)
+  autoCreateDatabaseKey: true
+
+  # Optional: Database key configuration
+  databaseKeyConfig:
+    # Name for the database key (default: "<cluster-name>-key")
+    name: my-cluster-db-key
+    # Scopes (default: ["read", "write"])
+    scopes:
+      - read
+      - write
+    # Expiration in days (default: 90)
+    expiresInDays: 90
+
+  # Suspend cluster when set to true
+  suspend: false
+
+  # Reconciliation interval (default: 5m)
+  interval: 5m

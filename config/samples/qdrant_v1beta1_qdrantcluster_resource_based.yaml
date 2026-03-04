@@ -1,0 +1,58 @@
+apiVersion: qdrant.infra.doodle.com/v1beta1
+kind: QdrantCluster
+metadata:
+  name: my-qdrant-cluster-auto
+  namespace: default
+spec:
+  # Your Qdrant Cloud account ID (UUID format)
+  # Get it from: https://cloud.qdrant.io/
+  accountID: "00000000-0000-0000-0000-000000000000"
+
+  # Cloud provider and region
+  cloudProvider: aws
+  cloudRegion: us-east-1
+
+  # Number of nodes
+  nodeCount: 3
+
+  # Qdrant version (optional, defaults to latest)
+  qdrantVersion: "latest"
+
+  # Package selection - Option 2: Auto-select based on resource requirements
+  # The controller will find the smallest package meeting these requirements
+  packageSelection:
+    resourceRequirements:
+      # Minimum RAM per node (e.g., "2Gi", "8Gi", "16Gi")
+      ram: "8Gi"
+      # Minimum CPU per node (e.g., "2" for 2 vCPU, "500m" for half a vCPU)
+      cpu: "2"
+      # Minimum disk per node (e.g., "32Gi", "64Gi")
+      disk: "32Gi"
+
+  # Optional: Add extra disk beyond selected package (in GiB)
+  additionalDiskGiB: 20
+
+  # Optional: Storage performance tier
+  # Options: cost-optimized (default), balanced, performance
+  storageTier: balanced
+
+  # Optional: Advanced configuration
+  configuration:
+    # Labels for the cluster (max 10)
+    labels:
+      environment: staging
+      team: ml-team
+      cost-center: "1234"
+
+  # Secret containing the Management API key
+  secret:
+    name: qdrant-cloud-api-key
+
+  # Auto-create database API key (default: true)
+  autoCreateDatabaseKey: true
+
+  # Suspend cluster when set to true
+  suspend: false
+
+  # Reconciliation interval (default: 5m)
+  interval: 10m
