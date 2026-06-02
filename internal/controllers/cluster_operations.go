@@ -210,7 +210,10 @@ func (r *QdrantClusterReconciler) resolvePackageID(ctx context.Context, qdrant *
 	return "", fmt.Errorf("either packageID or resourceRequirements must be specified")
 }
 
-func (r *QdrantClusterReconciler) createDatabaseKey(ctx context.Context, qdrant *qdrantclient.Client, cluster *infrav1beta1.QdrantCluster, logger logr.Logger) error {
+// createDatabaseKey creates a database API key and returns the secret token.
+// The token is only returned by the API at creation time, so the caller must
+// persist it immediately (it cannot be retrieved again later).
+func (r *QdrantClusterReconciler) createDatabaseKey(ctx context.Context, qdrant *qdrantclient.Client, cluster *infrav1beta1.QdrantCluster, logger logr.Logger) (string, error) {
 	keyName := fmt.Sprintf("%s-key", cluster.Name)
 	if cluster.Spec.DatabaseKeyConfig != nil && cluster.Spec.DatabaseKeyConfig.Name != "" {
 		keyName = cluster.Spec.DatabaseKeyConfig.Name
@@ -241,20 +244,20 @@ func (r *QdrantClusterReconciler) createDatabaseKey(ctx context.Context, qdrant 
 
 	resp, err := qdrant.CreateDatabaseApiKey(ctx, req)
 	if err != nil {
-		return fmt.Errorf("failed to create database API key: %w", err)
+		return "", fmt.Errorf("failed to create database API key: %w", err)
 	}
 
 	if resp.DatabaseApiKey == nil {
-		return fmt.Errorf("create database API key response missing key data")
+		return "", fmt.Errorf("create database API key response missing key data")
 	}
 
 	cluster.Status.DatabaseKeyID = resp.DatabaseApiKey.Id
 	logger.Info("database API key created", "keyID", resp.DatabaseApiKey.Id)
 
-	return nil
+	return resp.DatabaseApiKey.Key, nil
 }
 
-func (r *QdrantClusterReconciler) ensureConnectionSecret(ctx context.Context, cluster *infrav1beta1.QdrantCluster, secretName string, qdrantCluster *clusterv1.Cluster) error {
+func (r *QdrantClusterReconciler) ensureConnectionSecret(ctx context.Context, cluster *infrav1beta1.QdrantCluster, secretName string, qdrantCluster *clusterv1.Cluster, newAPIKey string) error {
 	if qdrantCluster.State == nil || qdrantCluster.State.Endpoint == nil {
 		return fmt.Errorf("cluster endpoint not available yet")
 	}
@@ -267,13 +270,15 @@ func (r *QdrantClusterReconciler) ensureConnectionSecret(ctx context.Context, cl
 		Name:      secretName,
 		Namespace: cluster.Namespace,
 	}, &existingSecret)
-
-	var apiKey string
-	if err == nil {
-		// Secret exists, preserve API key
-		apiKey = string(existingSecret.Data["apiKey"])
-	} else if !kerrors.IsNotFound(err) {
+	if err != nil && !kerrors.IsNotFound(err) {
 		return fmt.Errorf("failed to get existing secret: %w", err)
+	}
+
+	// Prefer a freshly created key (only available once, at creation time);
+	// otherwise preserve the key already stored in the connection secret.
+	apiKey := newAPIKey
+	if apiKey == "" && err == nil {
+		apiKey = string(existingSecret.Data["apiKey"])
 	}
 
 	// Build connection URLs
