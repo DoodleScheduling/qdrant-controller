@@ -14,8 +14,10 @@ import (
 )
 
 const (
-	// DefaultEndpoint is the default Qdrant Cloud API endpoint
-	DefaultEndpoint = "cloud.qdrant.io:443"
+	// DefaultEndpoint is the default Qdrant Cloud gRPC API endpoint.
+	// Note: the gRPC management API is served from grpc.cloud.qdrant.io;
+	// cloud.qdrant.io serves the web dashboard and returns HTTP 464 for gRPC requests.
+	DefaultEndpoint = "grpc.cloud.qdrant.io:443"
 )
 
 // Client wraps the Qdrant Cloud gRPC clients with authentication
