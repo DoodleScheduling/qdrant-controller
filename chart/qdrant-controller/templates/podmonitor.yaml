@@ -1,0 +1,48 @@
+{{- if .Values.podMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: {{ include "qdrant-controller.fullname" . }}
+  labels:
+    {{- include "qdrant-controller.labels" . | nindent 4 }}
+    {{- range $key, $value := .Values.podMonitor.additionalLabels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- if .Values.podMonitor.namespace }}
+  namespace: {{ .Values.podMonitor.namespace }}
+  {{- end }}
+  annotations:
+    {{- toYaml .Values.annotations | nindent 4 }}
+spec:
+  podMetricsEndpoints:
+  - path: {{ .Values.metricsPath }}
+    {{- if .Values.kubeRBACProxy.enabled }}
+    port: https
+    scheme: https
+    bearerTokenSecret:
+      key: token
+      name: {{ template "qdrant-controller.serviceAccountName" . }}
+    tlsConfig:
+      insecureSkipVerify: true
+    {{- else }}
+    port: metrics
+    {{- end }}
+    interval: {{ .Values.podMonitor.interval }}
+    scrapeTimeout: {{ .Values.podMonitor.scrapeTimeout }}
+    {{- if .Values.podMonitor.metricRelabelings }}
+    metricRelabelings: {{ toYaml .Values.podMonitor.metricRelabelings | nindent 4 }}
+    {{- end }}
+  namespaceSelector:
+    matchNames:
+    - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      {{- include "qdrant-controller.selectorLabels" . | nindent 6 }}
+  {{- if .Values.podMonitor.targetLabels }}
+  targetLabels:
+  {{- range .Values.podMonitor.targetLabels }}
+  - {{ . }}
+  {{- end }}
+  {{- end }}
+  sampleLimit: {{ .Values.podMonitor.sampleLimit }}
+{{- end }}

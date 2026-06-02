@@ -1,0 +1,22 @@
+{{- if .Values.prometheusRule.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ template "qdrant-controller.fullname" . }}
+  {{- if .Values.prometheusRule.namespace }}
+  namespace: {{ .Values.prometheusRule.namespace }}
+  {{- end }}
+  labels:
+    {{- include "qdrant-controller.labels" . | nindent 4 }}
+    {{- if .Values.prometheusRule.labels }}
+    {{- toYaml .Values.prometheusRule.labels | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- toYaml .Values.annotations | nindent 4 }}
+spec:
+  {{- with .Values.prometheusRule.rules }}
+  groups:
+  - name: {{ template "qdrant-controller.name" $ }}
+    rules: {{ tpl (toYaml .) $ | nindent 6 }}
+  {{- end }}
+{{- end }}
