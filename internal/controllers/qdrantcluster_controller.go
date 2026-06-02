@@ -247,16 +247,21 @@ func (r *QdrantClusterReconciler) reconcile(ctx context.Context, cluster infrav1
 					autoCreate = *cluster.Spec.AutoCreateDatabaseKey
 				}
 
+				// The database key token is only returned once, at creation time,
+				// so it must be written into the connection secret in this same
+				// reconcile rather than on a later requeue.
+				var newAPIKey string
 				if autoCreate && cluster.Status.DatabaseKeyID == "" {
 					logger.Info("creating database API key")
-					if err := r.createDatabaseKey(ctx, qdrant, &cluster, logger); err != nil {
+					key, err := r.createDatabaseKey(ctx, qdrant, &cluster, logger)
+					if err != nil {
 						return cluster, reconcile.Result{}, fmt.Errorf("failed to create database key: %w", err)
 					}
-					return cluster, reconcile.Result{Requeue: true}, nil
+					newAPIKey = key
 				}
 
 				// Ensure connection secret exists
-				if err := r.ensureConnectionSecret(ctx, &cluster, connectionSecretName, qdrantCluster.Cluster); err != nil {
+				if err := r.ensureConnectionSecret(ctx, &cluster, connectionSecretName, qdrantCluster.Cluster, newAPIKey); err != nil {
 					return cluster, reconcile.Result{}, fmt.Errorf("failed to create connection secret: %w", err)
 				}
 
