@@ -10,7 +10,7 @@ require (
 	github.com/qdrant/qdrant-cloud-public-api v0.0.0-20260218142822-45698eff8213
 	github.com/spf13/pflag v1.0.10
 	google.golang.org/grpc v1.79.3
-	google.golang.org/protobuf v1.36.10
+	google.golang.org/protobuf v1.36.11
 	k8s.io/api v0.35.0
 	k8s.io/apimachinery v0.35.1
 	k8s.io/client-go v0.35.0
