@@ -1,13 +1,13 @@
 module github.com/doodlescheduling/qdrant-controller
 
-go 1.26.0
+go 1.26.6
 
 require (
 	github.com/fluxcd/pkg/runtime v0.91.0
 	github.com/go-logr/logr v1.4.4
 	github.com/onsi/ginkgo/v2 v2.32.1
 	github.com/onsi/gomega v1.42.1
-	github.com/qdrant/qdrant-cloud-public-api v0.167.0
+	github.com/qdrant/qdrant-cloud-public-api v0.171.0
 	github.com/spf13/pflag v1.0.10
 	google.golang.org/grpc v1.83.0
 	google.golang.org/protobuf v1.36.12
